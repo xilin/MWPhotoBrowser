@@ -26,26 +26,26 @@
     if ((self = [super initWithCollectionViewLayout:[UICollectionViewFlowLayout new]])) {
         
         // Defaults
-        _columns = 3, _columnsL = 4;
-        _margin = 0, _gutter = 1;
-        _marginL = 0, _gutterL = 1;
+        _columns = 4, _columnsL = 4;
+        _margin = 0, _gutter = 5;
+        _marginL = 0, _gutterL = 5;
         
         // For pixel perfection...
         if (UI_USER_INTERFACE_IDIOM() == UIUserInterfaceIdiomPad) {
             // iPad
             _columns = 6, _columnsL = 8;
-            _margin = 1, _gutter = 2;
-            _marginL = 1, _gutterL = 2;
+            _margin = 1, _gutter = 4;
+            _marginL = 1, _gutterL = 4;
         } else if ([UIScreen mainScreen].bounds.size.height == 480) {
             // iPhone 3.5 inch
-            _columns = 3, _columnsL = 4;
-            _margin = 0, _gutter = 1;
-            _marginL = 1, _gutterL = 2;
+            _columns = 4, _columnsL = 4;
+            _margin = 0, _gutter = 4;
+            _marginL = 1, _gutterL = 4;
         } else {
             // iPhone 4 inch
-            _columns = 3, _columnsL = 5;
-            _margin = 0, _gutter = 1;
-            _marginL = 0, _gutterL = 2;
+            _columns = 4, _columnsL = 5;
+            _margin = 0, _gutter = 4;
+            _marginL = 0, _gutterL = 4;
         }
 
         _initialContentOffset = CGPointMake(0, CGFLOAT_MAX);
