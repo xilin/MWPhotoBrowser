@@ -6,9 +6,7 @@
 //  Copyright 2010 d3i. All rights reserved.
 //
 
-#import <SDWebImage/SDWebImageDecoder.h>
-#import <SDWebImage/SDWebImageManager.h>
-#import <SDWebImage/SDWebImageOperation.h>
+#import "PINRemoteImageManager.h"
 #import <AssetsLibrary/AssetsLibrary.h>
 #import "MWPhoto.h"
 #import "MWPhotoBrowser.h"
@@ -16,12 +14,12 @@
 @interface MWPhoto () {
 
     BOOL _loadingInProgress;
-    id <SDWebImageOperation> _webImageOperation;
     PHImageRequestID _assetRequestID;
     PHImageRequestID _assetVideoRequestID;
         
 }
 
+@property(nonatomic, strong) NSUUID *uuid;
 @property (nonatomic, strong) UIImage *image;
 @property (nonatomic, strong) NSURL *photoURL;
 @property (nonatomic, strong) PHAsset *asset;
@@ -211,31 +209,29 @@
 // Load from local file
 - (void)_performLoadUnderlyingImageAndNotifyWithWebURL:(NSURL *)url {
     @try {
-        SDWebImageManager *manager = [SDWebImageManager sharedManager];
-        _webImageOperation = [manager downloadImageWithURL:url
-                                                   options:0
-                                                  progress:^(NSInteger receivedSize, NSInteger expectedSize) {
-                                                      if (expectedSize > 0) {
-                                                          float progress = receivedSize / (float)expectedSize;
-                                                          NSDictionary* dict = [NSDictionary dictionaryWithObjectsAndKeys:
-                                                                                [NSNumber numberWithFloat:progress], @"progress",
-                                                                                self, @"photo", nil];
-                                                          [[NSNotificationCenter defaultCenter] postNotificationName:MWPHOTO_PROGRESS_NOTIFICATION object:dict];
-                                                      }
-                                                  }
-                                                 completed:^(UIImage *image, NSError *error, SDImageCacheType cacheType, BOOL finished, NSURL *imageURL) {
-                                                     if (error) {
-                                                         MWLog(@"SDWebImage failed to download image: %@", error);
-                                                     }
-                                                     _webImageOperation = nil;
-                                                     self.underlyingImage = image;
-                                                     dispatch_async(dispatch_get_main_queue(), ^{
-                                                         [self imageLoadingComplete];
-                                                     });
-                                                 }];
+        PINRemoteImageManager *manager = [PINRemoteImageManager sharedImageManager];
+        _uuid = [manager downloadImageWithURL:url options:PINRemoteImageManagerDownloadOptionsNone progressDownload:^(int64_t receivedSize, int64_t expectedSize) {
+            if (expectedSize > 0) {
+                float progress = receivedSize / (float)expectedSize;
+                NSDictionary *dict = [NSDictionary dictionaryWithObjectsAndKeys:
+                                      [NSNumber numberWithFloat:progress], @"progress",
+                                      self, @"photo", nil];
+                [[NSNotificationCenter defaultCenter] postNotificationName:MWPHOTO_PROGRESS_NOTIFICATION object:dict];
+            }
+        }
+                                   completion:^(PINRemoteImageManagerResult *_Nonnull result) {
+                                       if (result.error) {
+                                           MWLog(@"PINRemoteImageManager failed to download image: %@", result.error);
+                                       }
+                                       _uuid = nil;
+                                       self.underlyingImage = result.image;
+                                       dispatch_async(dispatch_get_main_queue(), ^{
+                                           [self imageLoadingComplete];
+                                       });
+                                   }];
     } @catch (NSException *e) {
         MWLog(@"Photo from web: %@", e);
-        _webImageOperation = nil;
+        _uuid = nil;
         [self imageLoadingComplete];
     }
 }
@@ -330,9 +326,10 @@
 }
 
 - (void)cancelAnyLoading {
-    if (_webImageOperation != nil) {
-        [_webImageOperation cancel];
-        _loadingInProgress = NO;
+    if (_uuid != nil) {
+        PINRemoteImageManager *manager = [PINRemoteImageManager sharedImageManager];
+        [manager cancelTaskWithUUID:_uuid storeResumeData:YES];
+        [self setValue:@(NO) forKey:@"_loadingInProgress"];
     }
     [self cancelImageRequest];
     [self cancelVideoRequest];
