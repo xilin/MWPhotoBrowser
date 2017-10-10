@@ -39,6 +39,6 @@ Pod::Spec.new do |s|
 
   s.dependency 'MBProgressHUD', '~> 0.9'
   s.dependency 'DACircularProgress', '~> 2.3'
-  s.dependency 'PINRemoteImage/iOS', '= 3.0.0-beta.12'
+  s.dependency 'PINRemoteImage/iOS', '= 3.0.0-beta.13'
 
 end
