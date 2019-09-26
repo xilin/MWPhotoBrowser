@@ -686,7 +686,7 @@ static void * MWVideoPlayerObservation = &MWVideoPlayerObservation;
             if ([photo caption]) captionView = [[MWCaptionView alloc] initWithPhoto:photo];
         }
     }
-    captionView.alpha = [self areControlsHidden] ? 0 : 1; // Initial alpha
+//    captionView.alpha = [self areControlsHidden] ? 0 : 1; // Initial alpha
     return captionView;
 }
 
@@ -1013,7 +1013,7 @@ static void * MWVideoPlayerObservation = &MWVideoPlayerObservation;
     CGRect pageFrame = [self frameForPageAtIndex:index];
     CGSize captionSize = [captionView sizeThatFits:CGSizeMake(pageFrame.size.width, 0)];
     CGRect captionFrame = CGRectMake(pageFrame.origin.x,
-                                     pageFrame.size.height - captionSize.height - (_toolbar.superview?_toolbar.frame.size.height:0),
+                                     pageFrame.size.height - captionSize.height - (_toolbar.superview?_toolbar.frame.size.height:0) - 30,
                                      pageFrame.size.width,
                                      captionSize.height);
     return CGRectIntegral(captionFrame);
